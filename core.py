@@ -125,7 +125,7 @@ class Input:
         with open("temp_setting.txt", "w+") as record:
             record.write(str(self.temp_setting))
             record.close()
-            slowprint(6, .2, "Recording temperature setting into temp_setting.txt .", "Done\n")
+            slowprint(6, .1, "Recording temperature setting into temp_setting.txt .", "Done\n")
 
     # waiting for more Input methods
 
@@ -230,28 +230,32 @@ class Connection:
         return skt
 
     def listen(self, socket_connection, mqqt_connection):
-        if self.msg_type!="mqtt": # establishing dsc connection only when "mqtt" not in process.
-            r, _, _ = select.select([socket_connection], [], [], 1.0)
-        else:
-            r = False
-        if r:
+        r, _, _ = select.select([socket_connection], [], [], 1.0)
+        
+  
+            
+        if self.msg_type=="mqtt":
+            # calls calback function, --> self.msg = "mqtt"
+            self.msg_type="none"
+            slowprint(6, .1, f"\nMQTT Data Updated ......")
+            # mqqt_replay
+            # mqqt
+        elif r:
             self.msg_type = "dsc"
             data, addr = socket_connection.recvfrom(1024)
             data = data.decode('utf-8')
             self.in_put = data
             self.server = addr
-            slowprint(6, .2, f"\nReceived to DSC message: {data}......", )
-        elif self.msg_type=="mqtt":
-            self.msg_type="none"
-            # mqqt_replay
-            # mqqt
+            slowprint(6, .1, f"\nReceived to DSC message: {data}......")
+            r = None
         else:
-            mqqt_connection.check_msg()  # does not return data as value would be updated in callback function.
-            # calls calback function, --> self.msg = "mqtt"
+            mqqt_connection.check_msg()
+            pass
+            
 
     def response(self):
         if self.in_put[:3].lower() == "set":
-            slowprint(6, .2, "\nRe-setting input temperature.")
+            slowprint(6, .1, "\nRe-setting input temperature.")
             clean_number = "".join(
                 [i for i in self.in_put[3:] if i in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]])
             main.temp_setting = int(clean_number[:2])
@@ -324,7 +328,7 @@ def mainloop(device,five_sec_temperature_collection):
                 pass
         sta = "on" if com.status() else "off"
         yyyymmdd, hh, mm = str(this_time)[:-4], str(this_time)[-4:-2], str(this_time)[-2:]
-        print(f"\r{com.heating_mode.upper()} is {sta.upper()} at Date: {yyyymmdd}, Time: {hh}:{mm}:{this_sec}, Sensor: {this_temp}, Temperature: {str(mean_temp)}, Lower_thld: {str(lower)}, Upper_thld: {str(upper)}, Timeout: {str(this_time - change_time)[-1:]}", sep="", end="")
+        print(f"\r{com.heating_mode.upper()} is {sta.upper()} at Date: {yyyymmdd}, Time: {hh}:{mm}:{this_sec}, Sensor: {this_temp}, Temperature: {str(mean_temp)}, Lower_thld: {str(lower)}, Upper_thld: {str(upper)}, Timeout: {str(this_time - change_time)[-1:]}    ", sep="", end="")
 
     back_count = 10
     print("\n\n")
