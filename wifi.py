@@ -1,0 +1,2 @@
+ssid = "SPARK-FDMF9F"
+psd = "LUU2W5DSME"
