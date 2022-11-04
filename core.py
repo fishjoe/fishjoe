@@ -49,14 +49,13 @@ class Unit:  # main heating/cooling unit
         return "System: Cooling" if self.heating_mode == "cooler" else "System: Heating"
 
     def mode_action(self):
-
+        # this part of code is still under development, will be completed in future update.
 
         # Heating : below-lower -> heat -> over-upper -> stop
         #
         # Cooling : over-upper -> cool - below-lower ->stop
         #
         # Hyper: below-lower -> heat -> over-upper -> cool
-
         pass
 
     def unit_start(self):  # unit start
