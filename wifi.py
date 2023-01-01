@@ -135,6 +135,17 @@ def checksum(data):
     cs = ~cs & 0xFFFF
     return cs
 
+# ----------------------------------------- including Olav Morken's "uping" ---------------------------
+# ----------------------------------------- for learning purpose only ---------------------------
+
+# µPing (MicroPing) for MicroPython
+# copyright (c) 2018 Shawwwn <shawwwn1@gmail.com>
+# License: MIT
+
+# Internet Checksum Algorithm
+# Author: Olav Morken
+# https://github.com/olavmrk/python-ping/blob/master/ping.py
+# @data: bytes
 
 def ping(host, count=4, timeout=5000, interval=10, quiet=False, size=64):
     import utime
