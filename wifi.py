@@ -2,12 +2,12 @@
 import sys
 import network
 import time
-import ubinascii
+import ubinascii  # using this module to display MAC address
 
-# Method for blinking.
+# onboard led to give feedback
 led = machine.Pin('LED', machine.Pin.OUT)
 
-
+# Method for blinking.
 def led_blink(qty, on, off):
     if led.value() == 0:
         for i in range(qty):
@@ -23,22 +23,31 @@ def led_blink(qty, on, off):
             time.sleep(on)
 
 
-def wifi_connection(ssid, psd, isAp=False, isStatic=True, iptp=('192.168.1.99', '255.255.255.0', '192.168.1.254',
+def wifi_connection(ssid, psd, isAp=False, isStatic=True, iptp=('192.168.1.96', '255.255.255.0', '192.168.1.254',
                                                                 '8.8.8.8')):  # Keys may include ssid, password, isAP, isStatic, staticIPPresetTuple)
-    #     count_on_attempts = 0
-    #     exlan=network.WLAN()
-    #     print(exlan.isconnected())
-    #     print(exlan.status())
-    #     print(exlan.ifconfig())
-    #
-    #     if exlan.isconnected():
-    #         exlan.disconnect()
-    #         exlan.ifconfig(('0.0.0.0','0.0.0.0','0.0.0.0','0.0.0.0'))
-    #         time.sleep(1)
-    #         exlan=network.WLAN()
-    #     print(exlan.isconnected())
-    #     print(exlan.status())
-    #     print(exlan.ifconfig())
+    
+    
+    # TODO this part is still faulty will fix
+    # Preconnection check,when MCU reset sometimes the previous connection data remains and causing problem.
+    exlan=network.WLAN()
+    print(f"Pre-conection test complete. previous connection: {exlan.isconnected()}, sta: {exlan.status()}")
+    if exlan.isconnected():
+        def clean(exlan):
+            print("Cleaning......", end="")
+            exlan.disconnect()
+            exlan.active(False)
+            exlan.ifconfig(('0.0.0.0','0.0.0.0','0.0.0.0','0.0.0.0'))  # reset ip configeration.
+            time.sleep(2)
+            exlan=network.WLAN()
+            if all([not exlan.isconnected(), exlan.status()==0,exlan.ifconfig()[0]=='0.0.0.0']):
+                return "Done"
+            else:
+                print("try again. \n")
+                clean(exlan)
+        print(clean(exlan))
+    else:
+        print("Reday to connect")
+    
     #
     #     sys.exit()
     count_on_attempts = 0
@@ -77,7 +86,7 @@ def wifi_connection(ssid, psd, isAp=False, isStatic=True, iptp=('192.168.1.99', 
             print("network.isconnected() : ", wifi.isconnected())
             ip = iptp[0] if not isStatic else wifi.ifconfig()[0]
             # print(wifi.isconnected()*bool(wifi.status()==3)*bool(wifi.ifconfig()[0]==iptp[0]))
-            print(ip)
+            print("IP: ", ip)
             if all(
                     [
                         wifi.isconnected(),
@@ -90,7 +99,7 @@ def wifi_connection(ssid, psd, isAp=False, isStatic=True, iptp=('192.168.1.99', 
                 # for learning.
                 try:
                     print("Pinging an internal machine......", end="")
-                    internal_result = ping(wifi.ifconfig()[3], quiet=True)[1]
+                    internal_result = ping(wifi.ifconfig()[2], quiet=True)[1]
                     led_blink(4, 0.1, 0.1)
                     print(internal_result, "/ 4  Done")
                     print("Pinging an external site......", end="")
@@ -102,8 +111,9 @@ def wifi_connection(ssid, psd, isAp=False, isStatic=True, iptp=('192.168.1.99', 
                 time.sleep(0.5)
                 led_blink(4, 0.1, 0.1)
                 if internal_result * external_result == 0:
-                    print("Wifi not working,retry.....")
-                    led_blink(5, 1, 1)
+                    print("Ping failed, retry.....")
+                    led_blink(1,1,0.5)
+                    led_blink(count_on_attempts, .5, .5)
                 else:
                     print("WIFI connection succesfull")
                     break
@@ -135,17 +145,6 @@ def checksum(data):
     cs = ~cs & 0xFFFF
     return cs
 
-# ----------------------------------------- including Olav Morken's "uping" ---------------------------
-# ----------------------------------------- for learning purpose only ---------------------------
-
-# µPing (MicroPing) for MicroPython
-# copyright (c) 2018 Shawwwn <shawwwn1@gmail.com>
-# License: MIT
-
-# Internet Checksum Algorithm
-# Author: Olav Morken
-# https://github.com/olavmrk/python-ping/blob/master/ping.py
-# @data: bytes
 
 def ping(host, count=4, timeout=5000, interval=10, quiet=False, size=64):
     import utime
